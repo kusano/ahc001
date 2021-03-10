@@ -1,0 +1,11 @@
+/.vs
+/Debug
+/Release
+/in
+/out
+/tools
+*.user
+/gen.exe
+/out.svg
+/vis.exe
+/vis.html
