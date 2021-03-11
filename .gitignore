@@ -1,6 +1,4 @@
 /.vs
-/Debug
-/Release
 /in
 /out
 /tools
@@ -9,3 +7,4 @@
 /out.svg
 /vis.exe
 /vis.html
+/x64

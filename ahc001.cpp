@@ -150,11 +150,12 @@ void evaluate()
     printf("sum: %lld\n", sum);
 }
 
+
 int main()
 {
+#ifdef LOCAL
     evaluate();
-    return 0;
-
+#else
     int n;
     cin>>n;
     vector<int> x(n), y(n), r(n);
@@ -169,4 +170,5 @@ int main()
     vector<int> d = t[3];
     for (int i=0; i<n; i++)
         cout<<a[i]<<" "<<b[i]<<" "<<c[i]<<" "<<d[i]<<endl;
+#endif
 }
