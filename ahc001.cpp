@@ -37,22 +37,39 @@ int xor64(void) {
     return int(x&0x7fffffff);
 }
 
-vector<vector<int>> solve(int n, vector<int> x, vector<int> y, vector<int> r)
+struct Ad
 {
-    vector<int> x1(n), y1(n), x2(n), y2(n);
+    int x, y, r;
+    int x1, y1, x2, y2;
+    int s() const {return (x2-x1)*(y2-y1);}
+};
+
+bool intersect(const Ad &a1, const Ad &a2)
+{
+    return !(
+        a1.x2<=a2.x1 ||
+        a2.x2<=a1.x1 ||
+        a1.y2<=a2.y1 ||
+        a2.y2<=a1.y1);
+}
+
+vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
+{
+    vector<Ad> ad(n);
+    for (int i=0; i<n; i++)
+    {
+        ad[i].x = x_[i];
+        ad[i].y = y_[i];
+        ad[i].r = r_[i];
+    }
 
     for (int i=0; i<n; i++)
     {
-        x1[i] = x[i];
-        y1[i] = y[i];
-        x2[i] = x[i]+1;
-        y2[i] = y[i]+1;
+        ad[i].x1 = ad[i].x;
+        ad[i].y1 = ad[i].y;
+        ad[i].x2 = ad[i].x+1;
+        ad[i].y2 = ad[i].y+1;
     }
-
-    auto area = [&](int p)
-    {
-        return (x2[p]-x1[p])*(y2[p]-y1[p]);
-    };
 
     int dx1[] = {-1, 0, 0, 0};
     int dy1[] = {0, -1, 0, 0};
@@ -62,32 +79,38 @@ vector<vector<int>> solve(int n, vector<int> x, vector<int> y, vector<int> r)
     for (int iter=0; iter<10'000'000; iter++)
     {
         int p = xor64()%n;
-        if (area(p)<r[p])
+        if (ad[p].s()<ad[p].r)
         {
             int d = xor64()%4;
+
+            Ad tmp = ad[p];
+            tmp.x1 += dx1[d];
+            tmp.y1 += dy1[d];
+            tmp.x2 += dx2[d];
+            tmp.y2 += dy2[d];
+
             bool ok = true;
-            if (x1[p]+dx1[d]<0 || W<x2[p]+dx2[d] ||
-                y1[p]+dy1[d]<0 || H<y2[p]+dy2[d])
+            if (tmp.x1<0 || W<tmp.x2 ||
+                tmp.y1<0 || H<tmp.y2)
                 ok = false;
 
             for (int i=0; i<n && ok; i++)
-                if (i!=p)
-                    if (!(x2[i]<=x1[p]+dx1[d] ||
-                          x1[i]>=x2[p]+dx2[d] ||
-                          y2[i]<=y1[p]+dy1[d] ||
-                          y1[i]>=y2[p]+dy2[d]))
-                        ok = false;
+                if (i!=p && intersect(tmp, ad[i]))
+                    ok = false;
             if (ok)
-            {
-                x1[p] += dx1[d];
-                y1[p] += dy1[d];
-                x2[p] += dx2[d];
-                y2[p] += dy2[d];
-            }
+                ad[p] = tmp;
         }
     }
 
-    return {x1, y1, x2, y2};
+    vector<int> a, b, c, d;
+    for (int i=0; i<n; i++)
+    {
+        a.push_back(ad[i].x1);
+        b.push_back(ad[i].y1);
+        c.push_back(ad[i].x2);
+        d.push_back(ad[i].y2);
+    }
+    return {a, b, c, d};
 }
 
 void evaluate()
