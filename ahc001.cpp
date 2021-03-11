@@ -68,6 +68,9 @@ bool intersect(const Ad &a1, const Ad &a2)
 
 vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
 {
+    chrono::system_clock::time_point start = chrono::system_clock::now();
+    double limit = 4.5;
+
     vector<Ad> ad(n);
     for (int i=0; i<n; i++)
     {
@@ -94,8 +97,25 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
 
     vector<pair<int, Ad>> Q;
 
-    for (int iter=0; iter<1'000'000; iter++)
+    double time = 0;
+    double temp_start = 1'000'000'000./200;
+    double temp_end = 0.;
+    double temp = 0;
+
+    int best = 0;
+    vector<vector<int>> best_ans(4, vector<int>(n));
+
+    for (int iter=0; ; iter++)
     {
+        if (iter%0x10000)
+        {
+            chrono::system_clock::time_point now = chrono::system_clock::now();
+            time = chrono::duration_cast<chrono::microseconds>(now-start).count()*1e-6/limit;
+            if (time>=1.0)
+                break;
+            temp = temp_start+(temp_end-temp_start)*time;
+        }
+
         int p = xor64()%n;
         if (ad[p].s()>=ad[p].r)
             continue;
@@ -205,8 +225,20 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
                 score += ad[i].score();
             }
 
-        //  スコアが減っているなら元に戻す
-        if (score<score_old)
+        if (score>best)
+        {
+            best = score;
+            for (int i=0; i<n; i++)
+            {
+                best_ans[0][i] = ad[i].x1;
+                best_ans[1][i] = ad[i].y1;
+                best_ans[2][i] = ad[i].x2;
+                best_ans[3][i] = ad[i].y2;
+            }
+        }
+
+        double prob = exp(double(score-score_old)/temp);
+        if (prob<(double)(xor64()%0x10000)/0x10000)
         {
             score = score_old;
             for (auto &q: Q)
@@ -215,15 +247,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         Q.clear();
     }
 
-    vector<int> a, b, c, d;
-    for (int i=0; i<n; i++)
-    {
-        a.push_back(ad[i].x1);
-        b.push_back(ad[i].y1);
-        c.push_back(ad[i].x2);
-        d.push_back(ad[i].y2);
-    }
-    return {a, b, c, d};
+    return best_ans;
 }
 
 void evaluate()
