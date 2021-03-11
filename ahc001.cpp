@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <chrono>
+#include <utility>
 #include <cstdio>
 using namespace std;
 
@@ -41,7 +42,19 @@ struct Ad
 {
     int x, y, r;
     int x1, y1, x2, y2;
-    int s() const {return (x2-x1)*(y2-y1);}
+    int w() const {return x2-x1;}
+    int h() const {return y2-y1;}
+    int s() const {return w()*h();}
+    int score() const
+    {
+        // (1-(1-min/max)**2)*1e9/n
+        // = (1-(max-min)**2/max**2)*1e9/n
+        // = 1e9/n-(max-min)**2*1e9/n/max**2
+        long long mx = max(r, s());
+        long long mn = min(r, s());
+        long long t = 1'000'000'000/200;
+        return int(t-t*(mx-mn)/mx*(mx-mn)/mx);
+    }
 };
 
 bool intersect(const Ad &a1, const Ad &a2)
@@ -63,43 +76,143 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         ad[i].r = r_[i];
     }
 
+    int score = 0;
     for (int i=0; i<n; i++)
     {
         ad[i].x1 = ad[i].x;
         ad[i].y1 = ad[i].y;
         ad[i].x2 = ad[i].x+1;
         ad[i].y2 = ad[i].y+1;
+        score += ad[i].score();
     }
 
+    //  ←↑→↓
     int dx1[] = {-1, 0, 0, 0};
     int dy1[] = {0, -1, 0, 0};
     int dx2[] = {0, 0, 1, 0};
     int dy2[] = {0, 0, 0, 1};
 
-    for (int iter=0; iter<10'000'000; iter++)
+    vector<pair<int, Ad>> Q;
+
+    for (int iter=0; iter<1'000'000; iter++)
     {
         int p = xor64()%n;
-        if (ad[p].s()<ad[p].r)
+        if (ad[p].s()>=ad[p].r)
+            continue;
+
+        //  拡張方向
+        int ed = xor64()%4;
+        //  拡張する長さ
+        //  以下の最小値
+        //  - 10
+        //  - 盤外に出ない
+        //  - スコアが最大
+        //  - 他の(x, y)を覆わない
+        int el = 10;
+        switch (ed)
         {
-            int d = xor64()%4;
-
-            Ad tmp = ad[p];
-            tmp.x1 += dx1[d];
-            tmp.y1 += dy1[d];
-            tmp.x2 += dx2[d];
-            tmp.y2 += dy2[d];
-
-            bool ok = true;
-            if (tmp.x1<0 || W<tmp.x2 ||
-                tmp.y1<0 || H<tmp.y2)
-                ok = false;
-
-            for (int i=0; i<n && ok; i++)
-                if (i!=p && intersect(tmp, ad[i]))
-                    ok = false;
-            if (ok)
-                ad[p] = tmp;
+        case 0:
+            el = min(el, ad[p].x1);
+            el = min(el, ad[p].r/ad[p].h()-ad[p].w());
+            for (int i=0; i<n; i++)
+                if (i!=p && ad[p].y1<=ad[i].y && ad[i].y<ad[p].y2 && ad[i].x<ad[p].x1)
+                    el = min(el, ad[p].x1-ad[i].x-1);
+            break;
+        case 1:
+            el = min(el, ad[p].y1);
+            el = min(el, ad[p].r/ad[p].w()-ad[p].h());
+            for (int i=0; i<n; i++)
+                if (i!=p && ad[p].x1<=ad[i].x && ad[i].x<ad[p].x2 && ad[i].y<ad[p].y1)
+                    el = min(el, ad[p].y1-ad[i].y-1);
+            break;
+        case 2:
+            el = min(el, W-ad[p].x2);
+            el = min(el, ad[p].r/ad[p].h()-ad[p].w());
+            for (int i=0; i<n; i++)
+                if (i!=p && ad[p].y1<=ad[i].y && ad[i].y<ad[p].y2 && ad[p].x2<=ad[i].x)
+                    el = min(el, ad[i].x-ad[p].x2);
+            break;
+        case 3:
+            el = min(el, H-ad[p].y2);
+            el = min(el, ad[p].r/ad[p].w()-ad[p].h());
+            for (int i=0; i<n; i++)
+                if (i!=p && ad[p].x1<=ad[i].x && ad[i].x<ad[p].x2 && ad[p].y2<=ad[i].y)
+                    el = min(el, ad[i].y-ad[p].y2);
+            break;
         }
+        if (el<=0)
+            continue;
+
+        int score_old = score;
+        //  拡張
+        score -= ad[p].score();
+        Q.push_back(make_pair(p, ad[p]));
+        ad[p].x1 += dx1[ed]*el;
+        ad[p].y1 += dy1[ed]*el;
+        ad[p].x2 += dx2[ed]*el;
+        ad[p].y2 += dy2[ed]*el;
+        score += ad[p].score();
+
+        //  衝突している広告を縮める
+        for (int i=0; i<n; i++)
+            if (i!=p && intersect(ad[p], ad[i]))
+            {
+                int c = 0;
+                Ad cand[4];
+                for (int sd=0; sd<4; sd++)
+                    switch (sd)
+                    {
+                    case 0:
+                        if (ad[i].x1<ad[p].x2 && ad[p].x2<=ad[i].x)
+                        {
+                            cand[c] = ad[i];
+                            cand[c].x1 = ad[p].x2;
+                            c++;
+                        }
+                        break;
+                    case 1:
+                        if (ad[i].y1<ad[p].y2 && ad[p].y2<=ad[i].y)
+                        {
+                            cand[c] = ad[i];
+                            cand[c].y1 = ad[p].y2;
+                            c++;
+                        }
+                        break;
+                    case 2:
+                        if (ad[i].x2>ad[p].x1 && ad[p].x1>ad[i].x)
+                        {
+                            cand[c] = ad[i];
+                            cand[c].x2 = ad[p].x1;
+                            c++;
+                        }
+                        break;
+                    case 3:
+                        if (ad[i].y2>ad[p].y1 && ad[p].y1>ad[i].y)
+                        {
+                            cand[c] = ad[i];
+                            cand[c].y2 = ad[p].y1;
+                            c++;
+                        }
+                        break;
+                    }
+                int m = -1;
+                for (int j=0; j<c; j++)
+                    if (m==-1 || cand[j].score()>cand[m].score())
+                        m = j;
+                score -= ad[i].score();
+                Q.push_back(make_pair(i, ad[i]));
+                ad[i] = cand[m];
+                score += ad[i].score();
+            }
+
+        //  スコアが減っているなら元に戻す
+        if (score<score_old)
+        {
+            score = score_old;
+            for (auto &q: Q)
+                ad[q.first] = q.second;
+        }
+        Q.clear();
     }
 
     vector<int> a, b, c, d;
