@@ -105,9 +105,10 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
     int best = 0;
     vector<vector<int>> best_ans(4, vector<int>(n));
 
-    for (int iter=0; ; iter++)
+    int iter;
+    for (iter=0; ; iter++)
     {
-        if (iter%0x10000)
+        if (iter%0x100000)
         {
             chrono::system_clock::time_point now = chrono::system_clock::now();
             time = chrono::duration_cast<chrono::microseconds>(now-start).count()*1e-6/limit;
@@ -246,6 +247,9 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         }
         Q.clear();
     }
+#ifdef LOCAL
+    cout<<"iter: "<<iter<<endl;
+#endif
 
     return best_ans;
 }
