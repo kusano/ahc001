@@ -1,0 +1,5 @@
+for i in $(seq 0 9)
+do
+  ./vis.exe in/000$i.txt out/000$i.txt
+  mv out.svg svg/000$i.svg
+done
