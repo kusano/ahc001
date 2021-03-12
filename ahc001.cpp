@@ -124,48 +124,76 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         //  拡張方向
         int ed = xor64()%4;
         //  拡張する長さ
-        //  以下の最小値
-        //  - 10
+        //  伸ばす場合は以下の最小値
         //  - 盤外に出ない
         //  - スコアが最大
         //  - 他の(x, y)を覆わない
-        int el = 10;
-        switch (ed)
+        //  縮める場合は以下の最大値
+        //  - 自分の(x, y)を覆ったまま
+        int el;
+        if (xor64()%4!=0)
         {
-        case 0:
-            el = min(el, ad[p].x1);
-            el = min(el, ad[p].r/ad[p].h()-ad[p].w());
-            for (int i=0; i<n; i++)
-                if (i!=p && ad[p].y1<=ad[i].y && ad[i].y<ad[p].y2 && ad[i].x<ad[p].x1)
-                    el = min(el, ad[p].x1-ad[i].x-1);
-            break;
-        case 1:
-            el = min(el, ad[p].y1);
-            el = min(el, ad[p].r/ad[p].w()-ad[p].h());
-            for (int i=0; i<n; i++)
-                if (i!=p && ad[p].x1<=ad[i].x && ad[i].x<ad[p].x2 && ad[i].y<ad[p].y1)
-                    el = min(el, ad[p].y1-ad[i].y-1);
-            break;
-        case 2:
-            el = min(el, W-ad[p].x2);
-            el = min(el, ad[p].r/ad[p].h()-ad[p].w());
-            for (int i=0; i<n; i++)
-                if (i!=p && ad[p].y1<=ad[i].y && ad[i].y<ad[p].y2 && ad[p].x2<=ad[i].x)
-                    el = min(el, ad[i].x-ad[p].x2);
-            break;
-        case 3:
-            el = min(el, H-ad[p].y2);
-            el = min(el, ad[p].r/ad[p].w()-ad[p].h());
-            for (int i=0; i<n; i++)
-                if (i!=p && ad[p].x1<=ad[i].x && ad[i].x<ad[p].x2 && ad[p].y2<=ad[i].y)
-                    el = min(el, ad[i].y-ad[p].y2);
-            break;
+            el = 20;
+            switch (ed)
+            {
+            case 0:
+                el = min(el, ad[p].x1);
+                el = min(el, ad[p].r/ad[p].h()-ad[p].w());
+                for (int i=0; i<n; i++)
+                    if (i!=p && ad[p].y1<=ad[i].y && ad[i].y<ad[p].y2 && ad[i].x<ad[p].x1)
+                        el = min(el, ad[p].x1-ad[i].x-1);
+                break;
+            case 1:
+                el = min(el, ad[p].y1);
+                el = min(el, ad[p].r/ad[p].w()-ad[p].h());
+                for (int i=0; i<n; i++)
+                    if (i!=p && ad[p].x1<=ad[i].x && ad[i].x<ad[p].x2 && ad[i].y<ad[p].y1)
+                        el = min(el, ad[p].y1-ad[i].y-1);
+                break;
+            case 2:
+                el = min(el, W-ad[p].x2);
+                el = min(el, ad[p].r/ad[p].h()-ad[p].w());
+                for (int i=0; i<n; i++)
+                    if (i!=p && ad[p].y1<=ad[i].y && ad[i].y<ad[p].y2 && ad[p].x2<=ad[i].x)
+                        el = min(el, ad[i].x-ad[p].x2);
+                break;
+            case 3:
+                el = min(el, H-ad[p].y2);
+                el = min(el, ad[p].r/ad[p].w()-ad[p].h());
+                for (int i=0; i<n; i++)
+                    if (i!=p && ad[p].x1<=ad[i].x && ad[i].x<ad[p].x2 && ad[p].y2<=ad[i].y)
+                        el = min(el, ad[i].y-ad[p].y2);
+                break;
+            }
+            if (el==0)
+                continue;
+            el = xor64()%el+1;
         }
-        if (el<=0)
-            continue;
+        else
+        {
+            el = -20;
+            switch (ed)
+            {
+            case 0:
+                el = max(el, ad[p].x1-ad[p].x);
+                break;
+            case 1:
+                el = max(el, ad[p].y1-ad[p].y);
+                break;
+            case 2:
+                el = max(el, ad[p].x-ad[p].x2+1);
+                break;
+            case 3:
+                el = max(el, ad[p].y-ad[p].y2+1);
+                break;
+            }
+            if (el==0)
+                continue;
+            el = -(xor64()%-el+1);
+        }
 
         int score_old = score;
-        //  拡張
+        //  拡張／縮小
         score -= ad[p].score();
         Q.push_back(make_pair(p, ad[p]));
         ad[p].x1 += dx1[ed]*el;
@@ -175,56 +203,57 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         score += ad[p].score();
 
         //  衝突している広告を縮める
-        for (int i=0; i<n; i++)
-            if (i!=p && intersect(ad[p], ad[i]))
-            {
-                int c = 0;
-                Ad cand[4];
-                for (int sd=0; sd<4; sd++)
-                    switch (sd)
-                    {
-                    case 0:
-                        if (ad[i].x1<ad[p].x2 && ad[p].x2<=ad[i].x)
+        if (el>0)
+            for (int i=0; i<n; i++)
+                if (i!=p && intersect(ad[p], ad[i]))
+                {
+                    int c = 0;
+                    Ad cand[4];
+                    for (int sd=0; sd<4; sd++)
+                        switch (sd)
                         {
-                            cand[c] = ad[i];
-                            cand[c].x1 = ad[p].x2;
-                            c++;
+                        case 0:
+                            if (ad[i].x1<ad[p].x2 && ad[p].x2<=ad[i].x)
+                            {
+                                cand[c] = ad[i];
+                                cand[c].x1 = ad[p].x2;
+                                c++;
+                            }
+                            break;
+                        case 1:
+                            if (ad[i].y1<ad[p].y2 && ad[p].y2<=ad[i].y)
+                            {
+                                cand[c] = ad[i];
+                                cand[c].y1 = ad[p].y2;
+                                c++;
+                            }
+                            break;
+                        case 2:
+                            if (ad[i].x2>ad[p].x1 && ad[p].x1>ad[i].x)
+                            {
+                                cand[c] = ad[i];
+                                cand[c].x2 = ad[p].x1;
+                                c++;
+                            }
+                            break;
+                        case 3:
+                            if (ad[i].y2>ad[p].y1 && ad[p].y1>ad[i].y)
+                            {
+                                cand[c] = ad[i];
+                                cand[c].y2 = ad[p].y1;
+                                c++;
+                            }
+                            break;
                         }
-                        break;
-                    case 1:
-                        if (ad[i].y1<ad[p].y2 && ad[p].y2<=ad[i].y)
-                        {
-                            cand[c] = ad[i];
-                            cand[c].y1 = ad[p].y2;
-                            c++;
-                        }
-                        break;
-                    case 2:
-                        if (ad[i].x2>ad[p].x1 && ad[p].x1>ad[i].x)
-                        {
-                            cand[c] = ad[i];
-                            cand[c].x2 = ad[p].x1;
-                            c++;
-                        }
-                        break;
-                    case 3:
-                        if (ad[i].y2>ad[p].y1 && ad[p].y1>ad[i].y)
-                        {
-                            cand[c] = ad[i];
-                            cand[c].y2 = ad[p].y1;
-                            c++;
-                        }
-                        break;
-                    }
-                int m = -1;
-                for (int j=0; j<c; j++)
-                    if (m==-1 || cand[j].score()>cand[m].score())
-                        m = j;
-                score -= ad[i].score();
-                Q.push_back(make_pair(i, ad[i]));
-                ad[i] = cand[m];
-                score += ad[i].score();
-            }
+                    int m = -1;
+                    for (int j=0; j<c; j++)
+                        if (m==-1 || cand[j].score()>cand[m].score())
+                            m = j;
+                    score -= ad[i].score();
+                    Q.push_back(make_pair(i, ad[i]));
+                    ad[i] = cand[m];
+                    score += ad[i].score();
+                }
 
         if (score>best)
         {
