@@ -62,7 +62,7 @@ struct Ad
 
         long long mx = max(r, s());
         long long mn = min(r, s());
-        long long t = 1'000'000'000/200;
+        long long t = 1'000'000;
         return score_old = int(t-t*(mx-mn)/mx*(mx-mn)/mx);
     }
 };
@@ -102,8 +102,8 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
 
     double limit = 4.8;
     double time = 0;
-    double temp_start = 1'000'000'000./200/10;
-    double temp_end = 1'000'000'000./200/10000;
+    double temp_start = 1'000'000./10;
+    double temp_end = 1'000'000./10000;
     double temp = 0;
 
     vector<vector<int>> X(W);
