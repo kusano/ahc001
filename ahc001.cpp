@@ -107,10 +107,18 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
     double temp_end = 1'000'000'000./200/10000;
     double temp = 0;
 
+    vector<vector<int>> X(W);
+    vector<vector<int>> Y(H);
+    for (Ad &a: ad)
+    {
+        X[a.y].push_back(a.x);
+        Y[a.x].push_back(a.y);
+    }
+
     int best = 0;
     vector<vector<int>> best_ans(4, vector<int>(n));
 
-    const int iter_max = -1; // 5000000;
+    const int iter_max = -1; //5000000;
     int iter;
     for (iter=0; ; iter++)
     {
@@ -158,30 +166,34 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
             case 0:
                 el = min(el, ad[p].x1);
                 el = min(el, ad[p].r/ad[p].h()-ad[p].w());
-                for (int i=0; i<n; i++)
-                    if (i!=p && ad[p].y1<=ad[i].y && ad[i].y<ad[p].y2 && ad[i].x<ad[p].x1)
-                        el = min(el, ad[p].x1-ad[i].x-1);
+                for (int x=ad[p].x1-1; x>=ad[p].x1-el; x--)
+                    for (int y: Y[x])
+                        if (ad[p].y1<=y && y<ad[p].y2)
+                            el = ad[p].x1-x-1;
                 break;
             case 1:
                 el = min(el, ad[p].y1);
                 el = min(el, ad[p].r/ad[p].w()-ad[p].h());
-                for (int i=0; i<n; i++)
-                    if (i!=p && ad[p].x1<=ad[i].x && ad[i].x<ad[p].x2 && ad[i].y<ad[p].y1)
-                        el = min(el, ad[p].y1-ad[i].y-1);
+                for (int y=ad[p].y1-1; y>=ad[p].y1-el; y--)
+                    for (int x: X[y])
+                        if (ad[p].x1<=x && x<ad[p].x2)
+                            el = ad[p].y1-y-1;
                 break;
             case 2:
                 el = min(el, W-ad[p].x2);
                 el = min(el, ad[p].r/ad[p].h()-ad[p].w());
-                for (int i=0; i<n; i++)
-                    if (i!=p && ad[p].y1<=ad[i].y && ad[i].y<ad[p].y2 && ad[p].x2<=ad[i].x)
-                        el = min(el, ad[i].x-ad[p].x2);
+                for (int x=ad[p].x2; x<ad[p].x2+el; x++)
+                    for (int y: Y[x])
+                        if (ad[p].y1<=y && y<ad[p].y2)
+                            el = x-ad[p].x2;
                 break;
             case 3:
                 el = min(el, H-ad[p].y2);
                 el = min(el, ad[p].r/ad[p].w()-ad[p].h());
-                for (int i=0; i<n; i++)
-                    if (i!=p && ad[p].x1<=ad[i].x && ad[i].x<ad[p].x2 && ad[p].y2<=ad[i].y)
-                        el = min(el, ad[i].y-ad[p].y2);
+                for (int y=ad[p].y2; y<ad[p].y2+el; y++)
+                    for (int x: X[y])
+                        if (ad[p].x1<=x && x<ad[p].x2)
+                            el = y-ad[p].y2;
                 break;
             }
             if (el==0)
