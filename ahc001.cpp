@@ -147,7 +147,8 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         int el;
         if (xor64()%4!=0)
         {
-            if (xor64()%4==0)
+            //  なるべく正方形に近づける
+            if (xor64()%2==0)
                 ed = xor64()%4;
             else
                 if (xor64()%(a.w()+a.h())<a.w())
