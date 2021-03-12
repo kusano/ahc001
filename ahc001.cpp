@@ -189,36 +189,32 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         //  - 盤外に出ない
         //  - スコアが最大
         //  - 他の(x, y)を覆わない
-        int el = W;
+        int el;
         switch (ed)
         {
         case 0:
-            el = min(el, a.x1);
-            el = min(el, a.r/a.h()-a.w());
+            el = min(a.x1, a.r/a.h()-a.w());
             for (int x=a.x1-1; x>=a.x1-el; x--)
                 for (int y: Y[x])
                     if (a.y1<=y && y<a.y2)
                         el = a.x1-x-1;
             break;
         case 1:
-            el = min(el, a.y1);
-            el = min(el, a.r/a.w()-a.h());
+            el = min(a.y1, a.r/a.w()-a.h());
             for (int y=a.y1-1; y>=a.y1-el; y--)
                 for (int x: X[y])
                     if (a.x1<=x && x<a.x2)
                         el = a.y1-y-1;
             break;
         case 2:
-            el = min(el, W-a.x2);
-            el = min(el, a.r/a.h()-a.w());
+            el = min(W-a.x2, a.r/a.h()-a.w());
             for (int x=a.x2; x<a.x2+el; x++)
                 for (int y: Y[x])
                     if (a.y1<=y && y<a.y2)
                         el = x-a.x2;
             break;
         case 3:
-            el = min(el, H-a.y2);
-            el = min(el, a.r/a.w()-a.h());
+            el = min(H-a.y2, a.r/a.w()-a.h());
             for (int y=a.y2; y<a.y2+el; y++)
                 for (int x: X[y])
                     if (a.x1<=x && x<a.x2)
