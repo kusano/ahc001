@@ -132,105 +132,101 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
 
         int p = xor64()%n;
         Ad &a = ad[p];
-        if (a.s()>=a.r)
-            continue;
 
-        //  拡張方向 ←↑→↓
-        int ed;
+        int score_old = score;
+        score -= a.score();
+        Q.push_back(make_pair(p, a));
+
+        //  拡張・縮小方向 ←↑→↓
+        int ed, sd;
+        //  なるべく正方形に近づける
+        if (xor64()%2==0)
+            ed = xor64()%4;
+        else
+            if (xor64()%(a.w()+a.h())<a.w())
+                ed = xor64()%2*2+1;
+            else
+                ed = xor64()%2*2;
+        if (ed==0 || ed==2)
+            sd = xor64()%2*2+1;
+        else
+            sd = xor64()%2*2;
+
+        //  ときどき縮小
+        if (xor64()%8==0)
+        {
+            //  縮小する長さ
+            //  条件
+            //  - 自分の(x, y)を覆ったまま
+            int sl;
+            switch (sd)
+            {
+            case 0:
+                sl = a.x-a.x1;
+                break;
+            case 1:
+                sl = a.y-a.y1;
+                break;
+            case 2:
+                sl = a.x2-a.x-1;
+                break;
+            case 3:
+                sl = a.y2-a.y-1;
+                break;
+            }
+            sl = xor64()%(sl+1);
+
+            switch (sd) {
+                case 0: a.x1 += sl; break;
+                case 1: a.y1 += sl; break;
+                case 2: a.x2 -= sl; break;
+                case 3: a.y2 -= sl; break;
+            }
+        }
+
         //  拡張する長さ
-        //  伸ばす場合は以下の最小値
+        //  条件
         //  - 盤外に出ない
         //  - スコアが最大
         //  - 他の(x, y)を覆わない
-        //  縮める場合は以下の最大値
-        //  - 自分の(x, y)を覆ったまま
-        int el;
-        if (xor64()%4!=0)
+        int el = W;
+        switch (ed)
         {
-            //  なるべく正方形に近づける
-            if (xor64()%2==0)
-                ed = xor64()%4;
-            else
-                if (xor64()%(a.w()+a.h())<a.w())
-                    ed = xor64()%2*2+1;
-                else
-                    ed = xor64()%2*2;
-
-            el = W;
-            switch (ed)
-            {
-            case 0:
-                el = min(el, a.x1);
-                el = min(el, a.r/a.h()-a.w());
-                for (int x=a.x1-1; x>=a.x1-el; x--)
-                    for (int y: Y[x])
-                        if (a.y1<=y && y<a.y2)
-                            el = a.x1-x-1;
-                break;
-            case 1:
-                el = min(el, a.y1);
-                el = min(el, a.r/a.w()-a.h());
-                for (int y=a.y1-1; y>=a.y1-el; y--)
-                    for (int x: X[y])
-                        if (a.x1<=x && x<a.x2)
-                            el = a.y1-y-1;
-                break;
-            case 2:
-                el = min(el, W-a.x2);
-                el = min(el, a.r/a.h()-a.w());
-                for (int x=a.x2; x<a.x2+el; x++)
-                    for (int y: Y[x])
-                        if (a.y1<=y && y<a.y2)
-                            el = x-a.x2;
-                break;
-            case 3:
-                el = min(el, H-a.y2);
-                el = min(el, a.r/a.w()-a.h());
-                for (int y=a.y2; y<a.y2+el; y++)
-                    for (int x: X[y])
-                        if (a.x1<=x && x<a.x2)
-                            el = y-a.y2;
-                break;
-            }
-            if (el==0)
-                continue;
-            el = xor64()%el+1;
+        case 0:
+            el = min(el, a.x1);
+            el = min(el, a.r/a.h()-a.w());
+            for (int x=a.x1-1; x>=a.x1-el; x--)
+                for (int y: Y[x])
+                    if (a.y1<=y && y<a.y2)
+                        el = a.x1-x-1;
+            break;
+        case 1:
+            el = min(el, a.y1);
+            el = min(el, a.r/a.w()-a.h());
+            for (int y=a.y1-1; y>=a.y1-el; y--)
+                for (int x: X[y])
+                    if (a.x1<=x && x<a.x2)
+                        el = a.y1-y-1;
+            break;
+        case 2:
+            el = min(el, W-a.x2);
+            el = min(el, a.r/a.h()-a.w());
+            for (int x=a.x2; x<a.x2+el; x++)
+                for (int y: Y[x])
+                    if (a.y1<=y && y<a.y2)
+                        el = x-a.x2;
+            break;
+        case 3:
+            el = min(el, H-a.y2);
+            el = min(el, a.r/a.w()-a.h());
+            for (int y=a.y2; y<a.y2+el; y++)
+                for (int x: X[y])
+                    if (a.x1<=x && x<a.x2)
+                        el = y-a.y2;
+            break;
         }
-        else
-        {
-            if (xor64()%4==0)
-                ed = xor64()%4;
-            else
-                if (xor64()%(a.w()+a.h())<a.w())
-                    ed = xor64()%2*2;
-                else
-                    ed = xor64()%2*2+1;
+        el = xor64()%(el+1);
 
-            el = -W;
-            switch (ed)
-            {
-            case 0:
-                el = max(el, a.x1-a.x);
-                break;
-            case 1:
-                el = max(el, a.y1-a.y);
-                break;
-            case 2:
-                el = max(el, a.x-a.x2+1);
-                break;
-            case 3:
-                el = max(el, a.y-a.y2+1);
-                break;
-            }
-            if (el==0)
-                continue;
-            el = -(xor64()%-el+1);
-        }
-
-        int score_old = score;
-        //  拡張／縮小
-        score -= a.score();
-        Q.push_back(make_pair(p, a));
         switch (ed) {
             case 0: a.x1 -= el; break;
             case 1: a.y1 -= el; break;
