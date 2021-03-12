@@ -69,7 +69,6 @@ bool intersect(const Ad &a1, const Ad &a2)
 vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
 {
     chrono::system_clock::time_point start = chrono::system_clock::now();
-    double limit = 4.5;
 
     vector<Ad> ad(n);
     for (int i=0; i<n; i++)
@@ -97,6 +96,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
 
     vector<pair<int, Ad>> Q;
 
+    double limit = 4.8;
     double time = 0;
     double temp_start = 1'000'000'000./200;
     double temp_end = 0.;
@@ -108,7 +108,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
     int iter;
     for (iter=0; ; iter++)
     {
-        if (iter%0x100000)
+        if (iter%0x10000==0)
         {
             chrono::system_clock::time_point now = chrono::system_clock::now();
             time = chrono::duration_cast<chrono::microseconds>(now-start).count()*1e-6/limit;
