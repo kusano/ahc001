@@ -122,7 +122,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
             continue;
 
         //  拡張方向
-        int ed = xor64()%4;
+        int ed;
         //  拡張する長さ
         //  伸ばす場合は以下の最小値
         //  - 盤外に出ない
@@ -133,6 +133,14 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         int el;
         if (xor64()%4!=0)
         {
+            if (xor64()%4==0)
+                ed = xor64()%4;
+            else
+                if (xor64()%(ad[p].w()+ad[p].h())<ad[p].w())
+                    ed = xor64()%2*2+1;
+                else
+                    ed = xor64()%2*2;
+
             el = 20;
             switch (ed)
             {
@@ -171,6 +179,14 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         }
         else
         {
+            if (xor64()%4==0)
+                ed = xor64()%4;
+            else
+                if (xor64()%(ad[p].w()+ad[p].h())<ad[p].w())
+                    ed = xor64()%2*2;
+                else
+                    ed = xor64()%2*2+1;
+
             el = -20;
             switch (ed)
             {
