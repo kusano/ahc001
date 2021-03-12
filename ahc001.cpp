@@ -98,8 +98,8 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
 
     double limit = 4.8;
     double time = 0;
-    double temp_start = 1'000'000'000./200;
-    double temp_end = 0.;
+    double temp_start = 1'000'000'000./200/10;
+    double temp_end = 1'000'000'000./200/10000;
     double temp = 0;
 
     int best = 0;
