@@ -1,4 +1,17 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+﻿#ifndef PARAM_TEMP_START
+#define PARAM_TEMP_START 0.1
+#endif
+#ifndef PARAM_TEMP_END
+#define PARAM_TEMP_END 0.0001
+#endif
+#ifndef PARAM_SQUARE
+#define PARAM_SQUARE 512
+#endif
+#ifndef PARAM_SHRINK
+#define PARAM_SHRINK 128
+#endif
+
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <iostream>
 #include <fstream>
@@ -7,6 +20,7 @@
 #include <chrono>
 #include <utility>
 #include <cstdio>
+#include <cmath>
 #include <cassert>
 using namespace std;
 
@@ -102,8 +116,8 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
 
     double limit = 4.8;
     double time = 0;
-    double temp_start = 1'000'000./10;
-    double temp_end = 1'000'000./10000;
+    double temp_start = 1'000'000.*PARAM_TEMP_START;
+    double temp_end = 1'000'000.*PARAM_TEMP_END;
     double temp = 0;
 
     vector<vector<int>> X(W);
@@ -145,20 +159,21 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         //  拡張・縮小方向 ←↑→↓
         int ed, sd;
         //  なるべく正方形に近づける
-        if (xor64()%2==0)
-            ed = xor64()%4;
-        else
+        if (xor64()%1024<PARAM_SQUARE)
             if (xor64()%(a.w()+a.h())<a.w())
                 ed = xor64()%2*2+1;
             else
                 ed = xor64()%2*2;
+        else
+            ed = xor64()%4;
+
         if (ed==0 || ed==2)
             sd = xor64()%2*2+1;
         else
             sd = xor64()%2*2;
 
         //  ときどき縮小
-        if (xor64()%8==0)
+        if (xor64()%1024<PARAM_SHRINK)
         {
             //  縮小する長さ
             //  条件
@@ -325,7 +340,11 @@ void evaluate()
     {
         char fname[10];
         sprintf(fname, "%04d.txt", i);
+#ifdef _WIN32
         ifstream in(string("in\\")+fname);
+#else
+        ifstream in(string("in/")+fname);
+#endif
         int n;
         in>>n;
         vector<int> x(n), y(n), r(n);
@@ -341,7 +360,11 @@ void evaluate()
         vector<int> c = t[2];
         vector<int> d = t[3];
 
+#ifdef _WIN32
         ofstream out(string("out\\")+fname);
+#else
+        ofstream out(string("out/")+fname);
+#endif
         for (int j=0; j<n; j++)
             out<<a[j]<<" "<<b[j]<<" "<<c[j]<<" "<<d[j]<<endl;
 
