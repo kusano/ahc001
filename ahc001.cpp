@@ -7,6 +7,7 @@
 #include <chrono>
 #include <utility>
 #include <cstdio>
+#include <cassert>
 using namespace std;
 
 const int W = 10000;
@@ -47,18 +48,22 @@ struct Ad
 {
     int x, y, r;
     int x1, y1, x2, y2;
+    int s_old = 0;
+    int score_old = 0;
     int w() const {return x2-x1;}
     int h() const {return y2-y1;}
     int s() const {return w()*h();}
-    int score() const
+    int score()
     {
-        // (1-(1-min/max)**2)*1e9/n
-        // = (1-(max-min)**2/max**2)*1e9/n
-        // = 1e9/n-(max-min)**2*1e9/n/max**2
+        int st = s();
+        if (st==s_old)
+            return score_old;
+        s_old = st;
+
         long long mx = max(r, s());
         long long mn = min(r, s());
         long long t = 1'000'000'000/200;
-        return int(t-t*(mx-mn)/mx*(mx-mn)/mx);
+        return score_old = int(t-t*(mx-mn)/mx*(mx-mn)/mx);
     }
 };
 
