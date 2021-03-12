@@ -141,7 +141,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
                 else
                     ed = xor64()%2*2;
 
-            el = 20;
+            el = W;
             switch (ed)
             {
             case 0:
@@ -187,7 +187,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
                 else
                     ed = xor64()%2*2+1;
 
-            el = -20;
+            el = -W;
             switch (ed)
             {
             case 0:
