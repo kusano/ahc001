@@ -24,7 +24,12 @@ int score(int n, vector<int> x, vector<int> y, vector<int> r,
         {
             int s = (c[i]-a[i])*(d[i]-b[i]);
             double t = (1-(double)min(r[i], s)/max(r[i], s));
+            //cout<<1-t*t<<" "<<r[i]-s<<endl;
             p += 1-t*t;
+        }
+        else
+        {
+            cerr<<"!!!"<<endl;
         }
     }
     return int(1e9*p/n+.5);
