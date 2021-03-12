@@ -93,12 +93,6 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         score += ad[i].score();
     }
 
-    //  ←↑→↓
-    int dx1[] = {-1, 0, 0, 0};
-    int dy1[] = {0, -1, 0, 0};
-    int dx2[] = {0, 0, 1, 0};
-    int dy2[] = {0, 0, 0, 1};
-
     vector<pair<int, Ad>> Q;
 
     double limit = 4.8;
@@ -141,7 +135,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         if (a.s()>=a.r)
             continue;
 
-        //  拡張方向
+        //  拡張方向 ←↑→↓
         int ed;
         //  拡張する長さ
         //  伸ばす場合は以下の最小値
@@ -236,10 +230,12 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         //  拡張／縮小
         score -= a.score();
         Q.push_back(make_pair(p, a));
-        a.x1 += dx1[ed]*el;
-        a.y1 += dy1[ed]*el;
-        a.x2 += dx2[ed]*el;
-        a.y2 += dy2[ed]*el;
+        switch (ed) {
+            case 0: a.x1 -= el; break;
+            case 1: a.y1 -= el; break;
+            case 2: a.x2 += el; break;
+            case 3: a.y2 += el; break;
+        }
         score += a.score();
 
         //  衝突している広告を縮める
