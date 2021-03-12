@@ -334,7 +334,11 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
 
 void evaluate()
 {
+#ifndef OPTUNA
     int N = 10;
+#else
+    int N = 50;
+#endif
     long long sum = 0;
     for (int i=0; i<N; i++)
     {

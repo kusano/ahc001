@@ -10,3 +10,5 @@
 /x64
 /log
 /svg
+/__pycache__
+/a.out
