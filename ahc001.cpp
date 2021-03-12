@@ -110,13 +110,19 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
     int best = 0;
     vector<vector<int>> best_ans(4, vector<int>(n));
 
+    const int iter_max = -1; // 5000000;
     int iter;
     for (iter=0; ; iter++)
     {
         if (iter%0x10000==0)
         {
-            chrono::system_clock::time_point now = chrono::system_clock::now();
-            time = chrono::duration_cast<chrono::microseconds>(now-start).count()*1e-6/limit;
+            if (iter_max<0)
+            {
+                chrono::system_clock::time_point now = chrono::system_clock::now();
+                time = chrono::duration_cast<chrono::microseconds>(now-start).count()*1e-6/limit;
+            }
+            else
+                time = (double)iter/iter_max;
             if (time>=1.0)
                 break;
             temp = temp_start+(temp_end-temp_start)*time;
