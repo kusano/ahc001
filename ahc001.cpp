@@ -137,7 +137,8 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         }
 
         int p = xor64()%n;
-        if (ad[p].s()>=ad[p].r)
+        Ad &a = ad[p];
+        if (a.s()>=a.r)
             continue;
 
         //  拡張方向
@@ -155,7 +156,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
             if (xor64()%4==0)
                 ed = xor64()%4;
             else
-                if (xor64()%(ad[p].w()+ad[p].h())<ad[p].w())
+                if (xor64()%(a.w()+a.h())<a.w())
                     ed = xor64()%2*2+1;
                 else
                     ed = xor64()%2*2;
@@ -164,36 +165,36 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
             switch (ed)
             {
             case 0:
-                el = min(el, ad[p].x1);
-                el = min(el, ad[p].r/ad[p].h()-ad[p].w());
-                for (int x=ad[p].x1-1; x>=ad[p].x1-el; x--)
+                el = min(el, a.x1);
+                el = min(el, a.r/a.h()-a.w());
+                for (int x=a.x1-1; x>=a.x1-el; x--)
                     for (int y: Y[x])
-                        if (ad[p].y1<=y && y<ad[p].y2)
-                            el = ad[p].x1-x-1;
+                        if (a.y1<=y && y<a.y2)
+                            el = a.x1-x-1;
                 break;
             case 1:
-                el = min(el, ad[p].y1);
-                el = min(el, ad[p].r/ad[p].w()-ad[p].h());
-                for (int y=ad[p].y1-1; y>=ad[p].y1-el; y--)
+                el = min(el, a.y1);
+                el = min(el, a.r/a.w()-a.h());
+                for (int y=a.y1-1; y>=a.y1-el; y--)
                     for (int x: X[y])
-                        if (ad[p].x1<=x && x<ad[p].x2)
-                            el = ad[p].y1-y-1;
+                        if (a.x1<=x && x<a.x2)
+                            el = a.y1-y-1;
                 break;
             case 2:
-                el = min(el, W-ad[p].x2);
-                el = min(el, ad[p].r/ad[p].h()-ad[p].w());
-                for (int x=ad[p].x2; x<ad[p].x2+el; x++)
+                el = min(el, W-a.x2);
+                el = min(el, a.r/a.h()-a.w());
+                for (int x=a.x2; x<a.x2+el; x++)
                     for (int y: Y[x])
-                        if (ad[p].y1<=y && y<ad[p].y2)
-                            el = x-ad[p].x2;
+                        if (a.y1<=y && y<a.y2)
+                            el = x-a.x2;
                 break;
             case 3:
-                el = min(el, H-ad[p].y2);
-                el = min(el, ad[p].r/ad[p].w()-ad[p].h());
-                for (int y=ad[p].y2; y<ad[p].y2+el; y++)
+                el = min(el, H-a.y2);
+                el = min(el, a.r/a.w()-a.h());
+                for (int y=a.y2; y<a.y2+el; y++)
                     for (int x: X[y])
-                        if (ad[p].x1<=x && x<ad[p].x2)
-                            el = y-ad[p].y2;
+                        if (a.x1<=x && x<a.x2)
+                            el = y-a.y2;
                 break;
             }
             if (el==0)
@@ -205,7 +206,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
             if (xor64()%4==0)
                 ed = xor64()%4;
             else
-                if (xor64()%(ad[p].w()+ad[p].h())<ad[p].w())
+                if (xor64()%(a.w()+a.h())<a.w())
                     ed = xor64()%2*2;
                 else
                     ed = xor64()%2*2+1;
@@ -214,16 +215,16 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
             switch (ed)
             {
             case 0:
-                el = max(el, ad[p].x1-ad[p].x);
+                el = max(el, a.x1-a.x);
                 break;
             case 1:
-                el = max(el, ad[p].y1-ad[p].y);
+                el = max(el, a.y1-a.y);
                 break;
             case 2:
-                el = max(el, ad[p].x-ad[p].x2+1);
+                el = max(el, a.x-a.x2+1);
                 break;
             case 3:
-                el = max(el, ad[p].y-ad[p].y2+1);
+                el = max(el, a.y-a.y2+1);
                 break;
             }
             if (el==0)
@@ -233,18 +234,18 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
 
         int score_old = score;
         //  拡張／縮小
-        score -= ad[p].score();
-        Q.push_back(make_pair(p, ad[p]));
-        ad[p].x1 += dx1[ed]*el;
-        ad[p].y1 += dy1[ed]*el;
-        ad[p].x2 += dx2[ed]*el;
-        ad[p].y2 += dy2[ed]*el;
-        score += ad[p].score();
+        score -= a.score();
+        Q.push_back(make_pair(p, a));
+        a.x1 += dx1[ed]*el;
+        a.y1 += dy1[ed]*el;
+        a.x2 += dx2[ed]*el;
+        a.y2 += dy2[ed]*el;
+        score += a.score();
 
         //  衝突している広告を縮める
         if (el>0)
             for (int i=0; i<n; i++)
-                if (i!=p && intersect(ad[p], ad[i]))
+                if (i!=p && intersect(a, ad[i]))
                 {
                     int c = 0;
                     Ad cand[4];
@@ -252,34 +253,34 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
                         switch (sd)
                         {
                         case 0:
-                            if (ad[i].x1<ad[p].x2 && ad[p].x2<=ad[i].x)
+                            if (ad[i].x1<a.x2 && a.x2<=ad[i].x)
                             {
                                 cand[c] = ad[i];
-                                cand[c].x1 = ad[p].x2;
+                                cand[c].x1 = a.x2;
                                 c++;
                             }
                             break;
                         case 1:
-                            if (ad[i].y1<ad[p].y2 && ad[p].y2<=ad[i].y)
+                            if (ad[i].y1<a.y2 && a.y2<=ad[i].y)
                             {
                                 cand[c] = ad[i];
-                                cand[c].y1 = ad[p].y2;
+                                cand[c].y1 = a.y2;
                                 c++;
                             }
                             break;
                         case 2:
-                            if (ad[i].x2>ad[p].x1 && ad[p].x1>ad[i].x)
+                            if (ad[i].x2>a.x1 && a.x1>ad[i].x)
                             {
                                 cand[c] = ad[i];
-                                cand[c].x2 = ad[p].x1;
+                                cand[c].x2 = a.x1;
                                 c++;
                             }
                             break;
                         case 3:
-                            if (ad[i].y2>ad[p].y1 && ad[p].y1>ad[i].y)
+                            if (ad[i].y2>a.y1 && a.y1>ad[i].y)
                             {
                                 cand[c] = ad[i];
-                                cand[c].y2 = ad[p].y1;
+                                cand[c].y2 = a.y1;
                                 c++;
                             }
                             break;
