@@ -1,4 +1,7 @@
-﻿#ifndef PARAM_TEMP_START
+﻿#ifndef PARAM_TEST_NUM
+#define PARAM_TEST_NUM 10
+#endif
+#ifndef PARAM_TEMP_START
 #define PARAM_TEMP_START 0.06373507175286201
 #endif
 #ifndef PARAM_TEMP_END
@@ -334,11 +337,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
 
 void evaluate()
 {
-#ifndef OPTUNA
-    int N = 10;
-#else
-    int N = 50;
-#endif
+    int N = PARAM_TEST_NUM;
     long long sum = 0;
     for (int i=0; i<N; i++)
     {
