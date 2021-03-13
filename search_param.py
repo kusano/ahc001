@@ -11,27 +11,37 @@ else:
   prog = "./a.out"
 
 def objective(trial):
-  temp_start = trial.suggest_float("temp_start", 0.01, 0.1, log=True)
-  temp_end = trial.suggest_float("temp_end", 1e-6, 1e-4, log=True)
-  square = trial.suggest_int("square", 0, 1024)
-  shrink = trial.suggest_int("shrink", 0, 1024)
+  test_num = 100
+  temp_start_50 = trial.suggest_float("temp_start_50", 1e-3, 1., log=True)
+  temp_start_200 = trial.suggest_float("temp_start_200", 1e-3, 1., log=True)
+  temp_end_50 = trial.suggest_float("temp_end_50", 1e-7, 1e-4, log=True)
+  temp_end_200 = trial.suggest_float("temp_end_200", 1e-7, 1e-4, log=True)
+  square_50 = trial.suggest_int("square_50", 0, 1024)
+  square_200 = trial.suggest_int("square_200", 0, 1024)
+  shrink_50 = trial.suggest_int("shrink_50", 0, 1024)
+  shrink_200 = trial.suggest_int("shrink_200", 0, 1024)
 
   os.system(
-    f"clang++ -std=c++17 -O2 -DNDEBUG -DLOCAL -DPARAM_TEST_NUM=50 "+
-    f"-DPARAM_TEMP_START={temp_start} "+
-    f"-DPARAM_TEMP_END={temp_end} "+
-    f"-DPARAM_SQUARE={square} "+
-    f"-DPARAM_SHRINK={shrink} "+
+    f"clang++ -std=c++17 -O2 -DNDEBUG -DLOCAL " +
+    f"-DPARAM_TEST_NUM={test_num} "+
+    f"-DPARAM_TEMP_START_50={temp_start_50} "+
+    f"-DPARAM_TEMP_START_200={temp_start_200} "+
+    f"-DPARAM_TEMP_END_50={temp_end_50} "+
+    f"-DPARAM_TEMP_END_200={temp_end_200} "+
+    f"-DPARAM_SQUARE_50={square_50} "+
+    f"-DPARAM_SQUARE_200={square_200} "+
+    f"-DPARAM_SHRINK_50={shrink_50} "+
+    f"-DPARAM_SHRINK_200={shrink_200} "+
     f"-o {prog} ./ahc001.cpp")
 
   s = pwn.process(prog)
-  while True:
-    l = s.recvline().decode()[:-1]
-    if l.startswith("sum: "):
-      return int(l[5:])
+  s.readuntil("sum: ")
+  score = float(s.recvline().decode()[:-1])/test_num*50
+  s.close()
+  return score
 
 study = optuna.create_study(
-  study_name="ahc001",
+  study_name="ahc001_8",
   storage="sqlite:///db.sqlite3",
   load_if_exists=True,
   direction="maximize")

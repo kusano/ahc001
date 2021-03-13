@@ -1,17 +1,29 @@
 ﻿#ifndef PARAM_TEST_NUM
 #define PARAM_TEST_NUM 10
 #endif
-#ifndef PARAM_TEMP_START
-#define PARAM_TEMP_START 0.06373507175286201
+#ifndef PARAM_TEMP_START_50
+#define PARAM_TEMP_START_50 0.0815533359406481
 #endif
-#ifndef PARAM_TEMP_END
-#define PARAM_TEMP_END 2.4471617707228463e-05
+#ifndef PARAM_TEMP_START_200
+#define PARAM_TEMP_START_200 0.1053527658230322
 #endif
-#ifndef PARAM_SQUARE
-#define PARAM_SQUARE 181
+#ifndef PARAM_TEMP_END_50
+#define PARAM_TEMP_END_50 1.0375415705099569e-06
 #endif
-#ifndef PARAM_SHRINK
-#define PARAM_SHRINK 337
+#ifndef PARAM_TEMP_END_200
+#define PARAM_TEMP_END_200 1.392894040033781e-05
+#endif
+#ifndef PARAM_SQUARE_50
+#define PARAM_SQUARE_50 136
+#endif
+#ifndef PARAM_SQUARE_200
+#define PARAM_SQUARE_200 12
+#endif
+#ifndef PARAM_SHRINK_50
+#define PARAM_SHRINK_50 121
+#endif
+#ifndef PARAM_SHRINK_200
+#define PARAM_SHRINK_200 436
 #endif
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -97,6 +109,11 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
 {
     chrono::system_clock::time_point start = chrono::system_clock::now();
 
+    double temp_start_coef = pow(PARAM_TEMP_START_200/PARAM_TEMP_START_50, double(n-50)/(200-50))*PARAM_TEMP_START_50;
+    double temp_end_coef = pow(PARAM_TEMP_END_200/PARAM_TEMP_END_50, double(n-50)/(200-50))*PARAM_TEMP_END_50;
+    int square = (PARAM_SQUARE_200-PARAM_SQUARE_50)*(n-50)/(200-50)+PARAM_SQUARE_50;
+    int shrink = (PARAM_SHRINK_200-PARAM_SHRINK_50)*(n-50)/(200-50)+PARAM_SHRINK_50;
+
     vector<Ad> ad(n);
     for (int i=0; i<n; i++)
     {
@@ -119,8 +136,8 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
 
     double limit = 4.8;
     double time = 0;
-    double temp_start = 1'000'000.*PARAM_TEMP_START;
-    double temp_end = 1'000'000.*PARAM_TEMP_END;
+    double temp_start = 1'000'000.*temp_start_coef;
+    double temp_end = 1'000'000.*temp_end_coef;
     double temp = 0;
 
     vector<vector<int>> X(W);
@@ -162,7 +179,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         //  拡張・縮小方向 ←↑→↓
         int ed, sd;
         //  なるべく正方形に近づける
-        if (xor64()%1024<PARAM_SQUARE)
+        if (xor64()%1024<square)
             if (xor64()%(a.w()+a.h())<a.w())
                 ed = xor64()%2*2+1;
             else
@@ -176,7 +193,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
             sd = xor64()%2*2;
 
         //  ときどき縮小
-        if (xor64()%1024<PARAM_SHRINK)
+        if (xor64()%1024<shrink)
         {
             //  縮小する長さ
             //  条件
