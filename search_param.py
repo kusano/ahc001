@@ -14,7 +14,7 @@ def objective(trial):
     f"clang++ -std=c++17 -O2 -DNDEBUG -DLOCAL -DOPTUNA "+
     f"-DPARAM_TEMP_START={temp_start} "+
     f"-DPARAM_TEMP_END={temp_end} "+
-    f"-DPARAM_SQURE={square} "+
+    f"-DPARAM_SQUARE={square} "+
     f"-DPARAM_SHRINK={shrink} "+
     f"-o ./a.out ./ahc001.cpp")
 
