@@ -11,8 +11,8 @@ else:
   prog = "./a.out"
 
 def objective(trial):
-  temp_start = trial.suggest_float("temp_start", 1e-6, 1., log=True)
-  temp_end = trial.suggest_float("temp_end", 1e-6, 1., log=True)
+  temp_start = trial.suggest_float("temp_start", 0.1, 0.01, log=True)
+  temp_end = trial.suggest_float("temp_end", 1e-6, 1e-4, log=True)
   square = trial.suggest_int("square", 0, 1024)
   shrink = trial.suggest_int("shrink", 0, 1024)
 
