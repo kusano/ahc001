@@ -1,8 +1,14 @@
 import optuna
 import os
 import pwn
+import sys
 
 pwn.context.log_level = "error"
+
+if len(sys.argv)>=2:
+  prog = sys.argv[1]
+else:
+  prog = "./a.out"
 
 def objective(trial):
   temp_start = trial.suggest_float("temp_start", 1e-6, 1., log=True)
@@ -16,9 +22,9 @@ def objective(trial):
     f"-DPARAM_TEMP_END={temp_end} "+
     f"-DPARAM_SQUARE={square} "+
     f"-DPARAM_SHRINK={shrink} "+
-    f"-o ./a.out ./ahc001.cpp")
+    f"-o {prog} ./ahc001.cpp")
 
-  s = pwn.process("./a.out")
+  s = pwn.process(prog)
   while True:
     l = s.recvline().decode()[:-1]
     if l.startswith("sum: "):
@@ -29,6 +35,6 @@ study = optuna.create_study(
   storage="sqlite:///db.sqlite3",
   load_if_exists=True,
   direction="maximize")
-study.optimize(objective, n_trials=400)
+study.optimize(objective, n_trials=25)
 print(study.best_params)
 print(study.best_value)
