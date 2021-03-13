@@ -10,8 +10,11 @@
 #ifndef PARAM_SQUARE
 #define PARAM_SQUARE 181
 #endif
-#ifndef PARAM_SHRINK
-#define PARAM_SHRINK 337
+#ifndef PARAM_SHRINK1
+#define PARAM_SHRINK1 337
+#endif
+#ifndef PARAM_SHRINK2
+#define PARAM_SHRINK2 100
 #endif
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -176,7 +179,8 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
             sd = xor64()%2*2;
 
         //  ときどき縮小
-        if (xor64()%1024<PARAM_SHRINK)
+        int shrink = xor64()%1024;
+        if (shrink<PARAM_SHRINK1)
         {
             //  縮小する長さ
             //  条件
@@ -204,6 +208,40 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
                 case 1: a.y1 += sl; break;
                 case 2: a.x2 -= sl; break;
                 case 3: a.y2 -= sl; break;
+            }
+        }
+        else if (shrink<PARAM_SHRINK1+PARAM_SHRINK2)
+        {
+            //  両側を縮める
+            int sl1, sl2;
+            switch (sd)
+            {
+            case 0:
+            case 2:
+                sl1 = a.x-a.x1;
+                sl2 = a.x2-a.x-1;
+                break;
+            case 1:
+            case 3:
+                sl1 = a.y-a.y1;
+                sl2 = a.y2-a.y-1;
+                break;
+            }
+            sl1 = xor64()%(sl1+1);
+            sl2 = xor64()%(sl2+1);
+
+            switch (sd)
+            {
+            case 0:
+            case 2:
+                a.x1 += sl1;
+                a.x2 -= sl2;
+                break;
+            case 1:
+            case 3:
+                a.y1 += sl1;
+                a.y2 -= sl2;
+                break;
             }
         }
 
