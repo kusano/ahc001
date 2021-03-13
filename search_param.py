@@ -16,10 +16,10 @@ def objective(trial):
   temp_start_200 = trial.suggest_float("temp_start_200", 1e-3, 1., log=True)
   temp_end_50 = trial.suggest_float("temp_end_50", 1e-7, 1e-4, log=True)
   temp_end_200 = trial.suggest_float("temp_end_200", 1e-7, 1e-4, log=True)
-  square_50 = trial.suggest_int("square_50", 0, 1024)
-  square_200 = trial.suggest_int("square_200", 0, 1024)
-  shrink_50 = trial.suggest_int("shrink_50", 0, 1024)
-  shrink_200 = trial.suggest_int("shrink_200", 0, 1024)
+  square_50 = trial.suggest_int("square_50", 0, 0x10000)
+  square_200 = trial.suggest_int("square_200", 0, 0x10000)
+  shrink_50 = trial.suggest_int("shrink_50", 0, 0x10000)
+  shrink_200 = trial.suggest_int("shrink_200", 0, 0x10000)
 
   os.system(
     f"clang++ -std=c++17 -O2 -DNDEBUG -DLOCAL " +

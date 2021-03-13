@@ -14,16 +14,16 @@
 #define PARAM_TEMP_END_200 1.392894040033781e-05
 #endif
 #ifndef PARAM_SQUARE_50
-#define PARAM_SQUARE_50 136
+#define PARAM_SQUARE_50 (136*64)
 #endif
 #ifndef PARAM_SQUARE_200
-#define PARAM_SQUARE_200 12
+#define PARAM_SQUARE_200 (12*64)
 #endif
 #ifndef PARAM_SHRINK_50
-#define PARAM_SHRINK_50 121
+#define PARAM_SHRINK_50 (121*64)
 #endif
 #ifndef PARAM_SHRINK_200
-#define PARAM_SHRINK_200 436
+#define PARAM_SHRINK_200 (436*64)
 #endif
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -179,7 +179,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         //  拡張・縮小方向 ←↑→↓
         int ed, sd;
         //  なるべく正方形に近づける
-        if (xor64()%1024<square)
+        if (xor64()%0x10000<square)
             if (xor64()%(a.w()+a.h())<a.w())
                 ed = xor64()%2*2+1;
             else
@@ -193,7 +193,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
             sd = xor64()%2*2;
 
         //  ときどき縮小
-        if (xor64()%1024<shrink)
+        if (xor64()%0x10000<shrink)
         {
             //  縮小する長さ
             //  条件
