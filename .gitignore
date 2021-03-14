@@ -1,6 +1,4 @@
 /.vs
-/in
-/out
 /tools
 *.user
 /gen.exe
@@ -9,6 +7,5 @@
 /vis.html
 /x64
 /log
-/svg
 /__pycache__
 /a.out
