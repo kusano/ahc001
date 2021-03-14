@@ -20,8 +20,6 @@ def objective(trial):
   square_200 = trial.suggest_int("square_200", 0, 0x10000)
   shrink_50 = trial.suggest_int("shrink_50", 0, 0x10000)
   shrink_200 = trial.suggest_int("shrink_200", 0, 0x10000)
-  vanish_50 = trial.suggest_int("vanish_50", 0, 0x10000)
-  vanish_200 = trial.suggest_int("vanish_200", 0, 0x10000)
 
   os.system(
     f"clang++ -std=c++17 -O2 -DNDEBUG -DLOCAL " +
@@ -34,8 +32,6 @@ def objective(trial):
     f"-DPARAM_SQUARE_200={square_200} "+
     f"-DPARAM_SHRINK_50={shrink_50} "+
     f"-DPARAM_SHRINK_200={shrink_200} "+
-    f"-DPARAM_VANISH_50={vanish_50} "+
-    f"-DPARAM_VANISH_200={vanish_200} "+
     f"-o {prog} ./ahc001.cpp")
 
   s = pwn.process(prog)
@@ -45,10 +41,10 @@ def objective(trial):
   return score
 
 study = optuna.create_study(
-  study_name="ahc001_9",
+  study_name="ahc001_8",
   storage="sqlite:///db.sqlite3",
   load_if_exists=True,
   direction="maximize")
-study.optimize(objective, n_trials=100)
+study.optimize(objective, n_trials=25)
 print(study.best_params)
 print(study.best_value)
