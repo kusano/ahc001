@@ -2,28 +2,34 @@
 #define PARAM_TEST_NUM 10
 #endif
 #ifndef PARAM_TEMP_START_50
-#define PARAM_TEMP_START_50 0.0815533359406481
+#define PARAM_TEMP_START_50 0.12306844096297964
 #endif
 #ifndef PARAM_TEMP_START_200
-#define PARAM_TEMP_START_200 0.1053527658230322
+#define PARAM_TEMP_START_200 0.0764459476496857
 #endif
 #ifndef PARAM_TEMP_END_50
-#define PARAM_TEMP_END_50 1.0375415705099569e-06
+#define PARAM_TEMP_END_50 1.5674456069829045e-07
 #endif
 #ifndef PARAM_TEMP_END_200
-#define PARAM_TEMP_END_200 1.392894040033781e-05
+#define PARAM_TEMP_END_200 4.204894204964404e-06
 #endif
 #ifndef PARAM_SQUARE_50
-#define PARAM_SQUARE_50 (136*64)
+#define PARAM_SQUARE_50 3442
 #endif
 #ifndef PARAM_SQUARE_200
-#define PARAM_SQUARE_200 (12*64)
+#define PARAM_SQUARE_200 5944
 #endif
 #ifndef PARAM_SHRINK_50
-#define PARAM_SHRINK_50 (121*64)
+#define PARAM_SHRINK_50 14199
 #endif
 #ifndef PARAM_SHRINK_200
-#define PARAM_SHRINK_200 (436*64)
+#define PARAM_SHRINK_200 13774
+#endif
+#ifndef PARAM_VANISH_50
+#define PARAM_VANISH_50 40154
+#endif
+#ifndef PARAM_VANISH_200
+#define PARAM_VANISH_200 28835
 #endif
 
 #define _CRT_SECURE_NO_WARNINGS
@@ -57,10 +63,6 @@ int score(int n, vector<int> x, vector<int> y, vector<int> r,
             //cout<<1-t*t<<" "<<r[i]-s<<endl;
             p += 1-t*t;
         }
-        else
-        {
-            cerr<<"!!!"<<endl;
-        }
     }
     return int(1e9*p/n+.5);
 }
@@ -79,11 +81,15 @@ struct Ad
     int x1, y1, x2, y2;
     int s_old = 0;
     int score_old = 0;
+    bool vanish = false;
     int w() const {return x2-x1;}
     int h() const {return y2-y1;}
     int s() const {return w()*h();}
     int score()
     {
+        if (vanish)
+            return 0;
+
         int st = s();
         if (st==s_old)
             return score_old;
@@ -113,6 +119,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
     double temp_end_coef = pow(PARAM_TEMP_END_200/PARAM_TEMP_END_50, double(n-50)/(200-50))*PARAM_TEMP_END_50;
     int square = (PARAM_SQUARE_200-PARAM_SQUARE_50)*(n-50)/(200-50)+PARAM_SQUARE_50;
     int shrink = (PARAM_SHRINK_200-PARAM_SHRINK_50)*(n-50)/(200-50)+PARAM_SHRINK_50;
+    int vanish = (PARAM_VANISH_200-PARAM_VANISH_50)*(n-50)/(200-50)+PARAM_VANISH_50;
 
     vector<Ad> ad(n);
     for (int i=0; i<n; i++)
@@ -142,14 +149,14 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
 
     vector<vector<int>> X(W);
     vector<vector<int>> Y(H);
-    for (Ad &a: ad)
+    for (int i=0; i<n; i++)
     {
-        X[a.y].push_back(a.x);
-        Y[a.x].push_back(a.y);
+        X[ad[i].x].push_back(i);
+        Y[ad[i].y].push_back(i);
     }
 
     int best = 0;
-    vector<vector<int>> best_ans(4, vector<int>(n));
+    vector<Ad> best_ad(n);
 
     const int iter_max = -1; //5000000;
     int iter;
@@ -172,9 +179,32 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         int p = xor64()%n;
         Ad &a = ad[p];
 
+        //  一定確率で広告を消す
+        if (xor64()%0x10000<vanish)
+        {
+            if (a.vanish)
+                continue;
+
+            int score_old = score;
+
+            score -= a.score();
+            a.vanish = true;
+
+            double prob = exp(double(score-score_old)/temp);
+            if (prob<(double)(xor64()%0x10000)/0x10000)
+            {
+                score = score_old;
+                a.vanish = false;
+            }
+
+            continue;
+        }
+
         int score_old = score;
         score -= a.score();
         Q.push_back(make_pair(p, a));
+
+        a.vanish = false;
 
         //  拡張・縮小方向 ←↑→↓
         int ed, sd;
@@ -235,29 +265,29 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         case 0:
             el = min(a.x1, a.r/a.h()-a.w());
             for (int x=a.x1-1; x>=a.x1-el; x--)
-                for (int y: Y[x])
-                    if (a.y1<=y && y<a.y2)
+                for (int i: X[x])
+                    if (!ad[i].vanish && a.y1<=ad[i].y && ad[i].y<a.y2)
                         el = a.x1-x-1;
             break;
         case 1:
             el = min(a.y1, a.r/a.w()-a.h());
             for (int y=a.y1-1; y>=a.y1-el; y--)
-                for (int x: X[y])
-                    if (a.x1<=x && x<a.x2)
+                for (int i: Y[y])
+                    if (!ad[i].vanish && a.x1<=ad[i].x && ad[i].x<a.x2)
                         el = a.y1-y-1;
             break;
         case 2:
             el = min(W-a.x2, a.r/a.h()-a.w());
             for (int x=a.x2; x<a.x2+el; x++)
-                for (int y: Y[x])
-                    if (a.y1<=y && y<a.y2)
+                for (int i: X[x])
+                    if (!ad[i].vanish && a.y1<=ad[i].y && ad[i].y<a.y2)
                         el = x-a.x2;
             break;
         case 3:
             el = min(H-a.y2, a.r/a.w()-a.h());
             for (int y=a.y2; y<a.y2+el; y++)
-                for (int x: X[y])
-                    if (a.x1<=x && x<a.x2)
+                for (int i: Y[y])
+                    if (!ad[i].vanish && a.x1<=ad[i].x && ad[i].x<a.x2)
                         el = y-a.y2;
             break;
         }
@@ -269,12 +299,14 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
             case 2: a.x2 += el; break;
             case 3: a.y2 += el; break;
         }
+
         score += a.score();
 
         //  衝突している広告を縮める
-        if (el>0)
+        //  拡張したか、消えていた広告を復活させた場合のみ
+        if (el>0 || Q[0].second.vanish)
             for (int i=0; i<n; i++)
-                if (i!=p && intersect(a, ad[i]))
+                if (i!=p && !ad[i].vanish && intersect(a, ad[i]))
                 {
                     int c = 0;
                     Ad cand[4];
@@ -318,9 +350,15 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
                     for (int j=0; j<c; j++)
                         if (m==-1 || cand[j].score()>cand[m].score())
                             m = j;
+
                     score -= ad[i].score();
                     Q.push_back(make_pair(i, ad[i]));
-                    ad[i] = cand[m];
+                    if (m!=-1)
+                        ad[i] = cand[m];
+                    else
+                        //  広告を消す場合、包含されていてどうしても衝突を回避できないことがある
+                        //  このときは包含されている側を消す
+                        ad[i].vanish = true;
                     score += ad[i].score();
                 }
 
@@ -328,12 +366,7 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         {
             best = score;
             for (int i=0; i<n; i++)
-            {
-                best_ans[0][i] = ad[i].x1;
-                best_ans[1][i] = ad[i].y1;
-                best_ans[2][i] = ad[i].x2;
-                best_ans[3][i] = ad[i].y2;
-            }
+                best_ad[i] = ad[i];
         }
 
         double prob = exp(double(score-score_old)/temp);
@@ -345,11 +378,47 @@ vector<vector<int>> solve(int n, vector<int> x_, vector<int> y_, vector<int> r_)
         }
         Q.clear();
     }
+
+    for (int i=0; i<n; i++)
+        ad[i] = best_ad[i];
+
+    //  消していた広告を適当に置く
+    //  さすがに置けないことは無い……はず？
+    int vanish_num = 0;
+    for (int i=0; i<n; i++)
+        if (ad[i].vanish)
+        {
+            vanish_num++;
+            ad[i].vanish = false;
+            while (true)
+            {
+                ad[i].x1 = xor64()%W;
+                ad[i].y1 = xor64()%W;
+                ad[i].x2 = ad[i].x1+1;
+                ad[i].y2 = ad[i].y1+1;
+                bool ok = true;
+                for (int j=0; j<n; j++)
+                    if (j!=i && intersect(ad[j], ad[i]))
+                        ok = false;
+                if (ok)
+                    break;
+            }
+        }
+
 #ifdef LOCAL
-    cout<<"iter: "<<iter<<endl;
+    cout<<"iter: "<<iter<<", vanish_num: "<<vanish_num<<endl;
 #endif
 
-    return best_ans;
+    vector<int> a, b, c, d;
+    for (int i=0; i<n; i++)
+    {
+        a.push_back(ad[i].x1);
+        b.push_back(ad[i].y1);
+        c.push_back(ad[i].x2);
+        d.push_back(ad[i].y2);
+    }
+
+    return {a, b, c, d};
 }
 
 void evaluate()
